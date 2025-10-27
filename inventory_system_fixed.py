@@ -1,29 +1,33 @@
+"""
+A simple inventory management system script.
+
+This module allows users to add, remove, and track items in an inventory.
+The inventory data can be saved to and loaded from a JSON file.
+"""
+
 import json
 from datetime import datetime
-# FIX: Removed unused 'logging' import (Pylint: unused-import)
-# FIX: Imports are now one per line (Flake8: E401)
 
 # Global variable
 stock_data = {}
 
 
-def addItem(item="default", qty=0, logs=None):
+# FIX: (Pylint: invalid-name) Renamed from 'addItem' to 'add_item'
+def add_item(item="default", qty=0, logs=None):
     """
     Adds a quantity of an item to the stock.
     """
-    # FIX: (Pylint: dangerous-default-value)
-    # Changed default argument from [] to None to prevent
-    # all calls from sharing the same mutable list.
     if logs is None:
         logs = []
 
-    # [cite_start]FIX: Added input validation (Lab Suggestion [cite: 77])
     if not isinstance(item, str) or not isinstance(qty, int):
-        print(f"Error: Invalid types for item ({type(item)}) or qty ({type(qty)}). Skipping.")
+        print(f"Error: Invalid types for item ({type(item)}) "
+              f"or qty ({type(qty)}). Skipping.")
         return
 
     if qty <= 0:
-        print(f"Warning: Cannot add zero or negative quantity ({qty}) for {item}. Skipping.")
+        print(f"Warning: Cannot add zero or negative quantity ({qty}) "
+              f"for {item}. Skipping.")
         return
 
     if not item:
@@ -31,92 +35,87 @@ def addItem(item="default", qty=0, logs=None):
         return
 
     stock_data[item] = stock_data.get(item, 0) + qty
-    
-    # [cite_start]FIX: Use f-string for logging (Pylint: logging-fstring-interpolation) [cite: 76]
     logs.append(f"{datetime.now()}: Added {qty} of {item}")
 
 
-def removeItem(item, qty):
+# FIX: (Pylint: invalid-name) Renamed from 'removeItem' to 'remove_item'
+def remove_item(item, qty):
     """
     Removes a quantity of an item from the stock.
     """
-    # FIX: Added input validation
     if not isinstance(item, str) or not isinstance(qty, int):
-        print(f"Error: Invalid types for item ({type(item)}) or qty ({type(qty)}). Skipping.")
+        print(f"Error: Invalid types for item ({type(item)}) "
+              f"or qty ({type(qty)}). Skipping.")
         return
-    
+
     if qty <= 0:
-        print(f"Warning: Cannot remove zero or negative quantity ({qty}) for {item}. Skipping.")
+        print(f"Warning: Cannot remove zero or negative quantity ({qty}) "
+              f"for {item}. Skipping.")
         return
 
     try:
         stock_data[item] -= qty
         if stock_data[item] <= 0:
             del stock_data[item]
-    # [cite_start]FIX: (Pylint: broad-except) [cite: 75]
-    # Replaced bare 'except:' with the specific 'KeyError'
-    # to avoid catching unintended errors.
     except KeyError:
         print(f"Warning: Item '{item}' not found, cannot remove.")
 
 
-def getQty(item):
+# FIX: (Pylint: invalid-name) Renamed from 'getQty' to 'get_qty'
+def get_qty(item):
     """
     Gets the quantity of a specific item.
     """
-    # FIX: Use .get() for safe dictionary lookup to prevent KeyError
-    # if the item does not exist.
     return stock_data.get(item, 0)
 
 
-def loadData(file="inventory.json"):
+# FIX: (Pylint: invalid-name) Renamed from 'loadData' to 'load_data'
+def load_data(file="inventory.json"):
     """
     Loads inventory data from a JSON file.
     """
+    # pylint: disable=global-statement
+    # FIX: Disabling 'global-statement' warning.
+    # This is necessary for this script's simple design.
     global stock_data
     try:
-        # FIX: (Pylint: consider-using-with)
-        # Use 'with open' context manager to ensure the file
-        # is always closed, even if errors occur.
-        # FIX: (Pylint: unspecified-encoding) Added encoding="utf-8".
         with open(file, "r", encoding="utf-8") as f:
             stock_data = json.loads(f.read())
     except FileNotFoundError:
         print(f"Warning: {file} not found, starting with empty inventory.")
         stock_data = {}
     except json.JSONDecodeError:
-        print(f"Error: Could not decode {file}. File might be corrupt. Starting with empty inventory.")
+        # FIX: (Pylint: line-too-long) Broke the long print statement
+        print(f"Error: Could not decode {file}. File might be corrupt.")
+        print("Starting with empty inventory.")
         stock_data = {}
 
 
-def saveData(file="inventory.json"):
+# FIX: (Pylint: invalid-name) Renamed from 'saveData' to 'save_data'
+def save_data(file="inventory.json"):
     """
     Saves the current inventory data to a JSON file.
     """
-    # FIX: (Pylint: consider-using-with)
-    # Use 'with open' context manager.
-    # FIX: (Pylint: unspecified-encoding) Added encoding="utf-8".
     with open(file, "w", encoding="utf-8") as f:
-        # Added 'indent=4' for readable, pretty-printed JSON
         f.write(json.dumps(stock_data, indent=4))
 
 
-def printData():
+# FIX: (Pylint: invalid-name) Renamed from 'printData' to 'print_data'
+def print_data():
     """
     Prints a formatted report of all items in stock.
     """
     print("\n--- Items Report ---")
-    # FIX: Use .items() to iterate and f-string for clean printing
     for item, qty in stock_data.items():
         print(f"{item} -> {qty}")
     print("--------------------\n")
 
 
-def checkLowItems(threshold=5):
+# FIX: (Pylint: invalid-name) Renamed from 'checkLowItems' to 'check_low_items'
+def check_low_items(threshold=5):
     """
     Returns a list of items with stock below the threshold.
     """
-    # FIX: Replaced for-loop with a more Pythonic list comprehension
     return [item for item, qty in stock_data.items() if qty < threshold]
 
 
@@ -124,33 +123,28 @@ def main():
     """
     Main function to run the inventory system operations.
     """
-    # This call will now be skipped by our validation
-    loadData() # Load existing data first
-    
-    addItem("apple", 10)
-    # This call will now be skipped by our validation
-    addItem("banana", -2)
-    # This call will now be skipped by our validation
-    addItem(123, "ten")
-    
-    removeItem("apple", 3)
-    # This call will now print a warning instead of passing silently
-    removeItem("orange", 1)
+    # FIX: Updated all function calls to use snake_case
+    load_data()  # Load existing data first
 
-    print(f"Apple stock: {getQty('apple')}")
-    print(f"Low items: {checkLowItems()}")
+    add_item("apple", 10)
+    add_item("banana", -2)
+    add_item(123, "ten")
 
-    saveData()
-    loadData() # Reload to confirm save was successful
-    printData()
+    remove_item("apple", 3)
+    remove_item("orange", 1)
 
-    # FIX: (Bandit: B307)
-    # Replaced dangerous 'eval()' call with a simple 'print()'.
+    print(f"Apple stock: {get_qty('apple')}")
+    print(f"Low items: {check_low_items()}")
+
+    save_data()
+    load_data()  # Reload to confirm save was successful
+    print_data()
+
     print("eval used")
 
 
-# FIX: (Pylint: missing-if-name-main)
-# Wrap the main execution in an 'if __name__ == "__main__":' block
-# so it doesn't run when the file is imported.
 if __name__ == "__main__":
     main()
+
+# FIX: (Pylint: missing-final-newline) This file now ends with a blank line.
+# FIX: (Pylint: trailing-whitespace) All extra spaces at the end of lines are removed.
